@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask Drawing App</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Left Panel -->
+        <div id="drawing-panel" class="rectangle">
+            <canvas id="drawing-canvas"></canvas>
+        </div>
+
+        <!-- Model Selector -->
+        <div class="model-selector">
+            <select id="model-select">
+                <option value="Logistic">Logistic</option>
+                <option value="Naive">Naive</option>
+                <option value="Random">Random</option>
+                <option value="SVM">SVM</option>
+                <option value="Mymodel">Mymodel</option>
+            </select>
+        </div>
+
+        <!-- Right Panel -->
+        <div id="right-panel" class="rectangle"></div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="button-container">
+        <button id="recognize-btn">인식</button>
+        <button id="clear-btn">지우기</button>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
+``
