@@ -1,147 +1,96 @@
-const canvas = document.getElementById("drawing-canvas");
-const ctx = canvas.getContext("2d");
+const gridContainer = document.getElementById("drawing-grid");
+const gridSize = 28; // 28x28 grid
+const grid = [];
+let isDragging = false; // 드래그 상태를 추적
 
-// Set canvas size
-canvas.width = canvas.parentElement.offsetWidth;
-canvas.height = canvas.parentElement.offsetHeight;
+// 28x28 그리드 생성
+for (let i = 0; i < gridSize * gridSize; i++) {
+    const cell = document.createElement("div");
+    cell.className = "cell";
 
-// Set canvas background to white
-ctx.fillStyle = "white";
-ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-// Drawing variables
-let drawing = false;
-
-// Canvas event listeners
-canvas.addEventListener("mousedown", () => {
-    drawing = true;
-    console.log("Mouse down");
-});
-
-canvas.addEventListener("mouseup", () => {
-    drawing = false;
-    console.log("Mouse up");
-});
-
-canvas.addEventListener("mousemove", (e) => {
-    if (!drawing) return;
-    console.log("Mouse move", e.clientX, e.clientY);
-
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    ctx.fillStyle = "black";
-    ctx.fillRect(x, y, 5, 5);
-});
-
-// Recognize button event
-document.getElementById("recognize-btn").addEventListener("click", async () => {
-    // Check if canvas is empty
-    const pixelData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-    console.log("Canvas pixel data:", pixelData);
-
-    const isCanvasEmpty = pixelData.every((value, index) => {
-        // Alpha values are at every 4th index starting from 3
-        if ((index + 1) % 4 === 0) {
-            return value === 0;
-        }
-        return true;
+    // 마우스 드래그 시작 시 색상 설정
+    cell.addEventListener("mousedown", () => {
+        isDragging = true;
+        setCellBlack(cell);
     });
 
-    if (isCanvasEmpty) {
-        console.error("Canvas is empty. Please draw something.");
-        document.getElementById("result-text").textContent = "Canvas is empty!";
-        return; // Stop processing if canvas is empty
-    }
+    // 드래그 중 색상 설정
+    cell.addEventListener("mousemove", () => {
+        if (isDragging) {
+            setCellBlack(cell);
+        }
+    });
 
-    // Resize canvas to 28x28 and convert to grayscale
-    const resizedCanvas = document.createElement("canvas");
-    resizedCanvas.width = 28;
-    resizedCanvas.height = 28;
-    const resizedCtx = resizedCanvas.getContext("2d");
+    gridContainer.appendChild(cell);
+    grid.push(cell);
+}
 
-    // Clear resized canvas and draw the resized image
-    resizedCtx.clearRect(0, 0, 28, 28);
-    resizedCtx.drawImage(
-        canvas,
-        0,
-        0,
-        canvas.width,
-        canvas.height,
-        0,
-        0,
-        resizedCanvas.width,
-        resizedCanvas.height
-    );
+// 마우스 버튼을 놓으면 드래그 중단
+document.body.addEventListener("mouseup", () => {
+    isDragging = false;
+});
 
-    // Get image data from resized canvas
-    const imageData = resizedCtx.getImageData(0, 0, 28, 28).data;
-    console.log("Resized canvas image data:", imageData);
+// 셀을 검정색으로 설정하는 함수
+function setCellBlack(cell) {
+    cell.style.backgroundColor = "black";
+}
 
-    // Convert image data to grayscale and invert the values
-    const grayscaleData = [];
-    for (let i = 0; i < imageData.length; i += 4) {
-        const gray =
-            imageData[i] * 0.3 +   // Red
-            imageData[i + 1] * 0.59 + // Green
-            imageData[i + 2] * 0.11;  // Blue
-        grayscaleData.push(1 - gray / 255.0); // Normalize and invert
-    }
-
-
+// Recognize 버튼 클릭 이벤트
+document.getElementById("recognize-btn").addEventListener("click", async () => {
+    // 그리드 상태를 데이터로 변환 (검정: 1, 흰색: 0)
+    const grayscaleData = grid.map((cell) => (cell.style.backgroundColor === "black" ? 1 : 0));
     console.log("Grayscale data:", grayscaleData);
 
     const selectedModel = document.getElementById("model-select").value;
 
-    // Fetch request to send data to the server
-    const response = await fetch("/recognize", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ data: grayscaleData, model: selectedModel }),
-    });
-
-    const result = await response.json();
-    document.getElementById(
-        "result-text"
-    ).textContent = `Prediction: ${result.prediction}`;
-});
-
-// Clear button event
-document.getElementById("clear-btn").addEventListener("click", () => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    // Redraw the white background
-    ctx.fillStyle = "white";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    document.getElementById("result-text").textContent = ""; // Clear result text
-});
-document.getElementById("model-select").addEventListener("change", async () => {
-    // 모델 선택 값을 가져오기
-    const selectedModel = document.getElementById("model-select").value;
-
-    if (!selectedModel) {
-        alert("No model selected. Please choose a valid model.");
-        return; // 선택되지 않았으면 실행 중단
-    }
-
     try {
-        // 서버로 요청 전송
-        console.log(selectedModel);
-        console.log(typeof(selectedModel));
+        const response = await fetch("/recognize", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ data: grayscaleData, model: selectedModel }),
+        });
+
+        const result = await response.json();
+        document.getElementById("result-text").textContent = `Prediction: ${result.prediction}`;
+    } catch (error) {
+        console.error("Error during recognition:", error);
+    }
+});
+
+// Clear 버튼 클릭 이벤트
+document.getElementById("clear-btn").addEventListener("click", () => {
+    grid.forEach((cell) => (cell.style.backgroundColor = "white"));
+    document.getElementById("result-text").textContent = ""; // 결과 초기화
+});
+// 가중치 설정 함수
+async function loadModelWeights(selectedModel) {
+    try {
+        // 서버로 선택한 모델 전송
         const response = await fetch("/load_weights", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ model: selectedModel }), // 모델 이름만 전송
+            body: JSON.stringify({ model: selectedModel }), // 선택된 모델 이름 전송
         });
 
         const result = await response.json();
         if (response.ok) {
-            alert(result.message); // 서버 응답 메시지 알림
+            console.log(`Model weights loaded: ${result.message}`);
+            alert(`Model weights for '${selectedModel}' loaded successfully.`);
         } else {
+            console.error(`Failed to load model weights: ${result.error}`);
             alert(`Error: ${result.error}`);
         }
     } catch (error) {
-        alert(`Failed to load model: ${error.message}`);
+        console.error(`Error while loading model weights: ${error}`);
+        alert(`Failed to load model weights: ${error.message}`);
+    }
+}
+
+// 모델 선택 드롭다운 이벤트 리스너
+document.getElementById("model-select").addEventListener("change", (event) => {
+    const selectedModel = event.target.value;
+    if (selectedModel) {
+        console.log(`Selected model: ${selectedModel}`);
+        loadModelWeights(selectedModel); // 가중치 로드 호출
     }
 });
-

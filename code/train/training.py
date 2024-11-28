@@ -68,21 +68,13 @@ class Model:
         """
         try:
             print(model_name)
-            print("트레이닝까지 왔어요")
             # 현재 파일의 절대 경로
             current_dir = os.path.dirname(os.path.abspath(__file__))
-
-            # 상위 폴더로 이동 후 model/MyDL 경로 설정
             base_dir = os.path.join(current_dir, "..","..", "model", "MyDL")
             base_dir = os.path.abspath(base_dir)  # 절대 경로로 변환
-
             # 디렉토리가 존재하는지 확인
             if not os.path.exists(base_dir):
                 raise FileNotFoundError(f"Directory does not exist: {base_dir}")
-
-            # 디버깅용 출력
-            print(f"Resolved weights directory: {base_dir}")
-            print(f"Model name: {model_name}")
 
             # 동적으로 파일 이름 생성 및 로드
             self.W1 = np.load(os.path.join(base_dir, f"W1_{model_name}.npy"))
@@ -97,7 +89,7 @@ class Model:
             raise Exception(f"File or directory not found: {str(fnf_error)}")
         except Exception as e:
             raise Exception(f"Error loading weights for model '{model_name}': {str(e)}")
-            
+
 # 데이터 경로 설정
 script_dir = os.path.dirname(os.path.abspath(__file__))
 datasets_dir = os.path.abspath(os.path.join(script_dir, "..", "..", "datasets"))
@@ -107,11 +99,16 @@ os.makedirs(model_dir, exist_ok=True)
 os.makedirs(result_dir, exist_ok=True)
 
 # 데이터 로드 및 분할
-def load_data(clean_data_file, clean_labels_file):
+def load_data(clean_data_file, clean_labels_file, normalize=False):
     X = np.load(os.path.join(datasets_dir, clean_data_file), allow_pickle=True)
     y = np.load(os.path.join(datasets_dir, clean_labels_file), allow_pickle=True)
+
+    # 정규화 처리 (DL 모델인 경우)
+    if normalize:
+        X = X.astype(np.float32) / 255.0
+
     if len(y.shape) > 1 and y.shape[1] > 1:
-        return X, y  # Already one-hot encoded
+        return X, y
     else:
         y = y.astype(int)
         y_one_hot = np.eye(10)[y]
@@ -119,7 +116,9 @@ def load_data(clean_data_file, clean_labels_file):
 
 # 학습 및 저장
 def train(model_name, clean_data_file, clean_labels_file):
-    X_train, y_train = load_data(clean_data_file, clean_labels_file)
+    is_dl_model = model_name in ["Original"]  # DL 모델만 정규화
+    X_train, y_train = load_data(clean_data_file, clean_labels_file, normalize=is_dl_model)
+
     model = Model()
 
     epochs = 200
@@ -157,7 +156,6 @@ def train(model_name, clean_data_file, clean_labels_file):
             else:
                 high_accuracy_count = 0
 
-    # 모델 저장
     np.save(os.path.join(model_dir, f"W1_{model_name}.npy"), model.W1)
     np.save(os.path.join(model_dir, f"W2_{model_name}.npy"), model.W2)
     np.save(os.path.join(model_dir, f"W3_{model_name}.npy"), model.W3)
@@ -168,7 +166,7 @@ def train(model_name, clean_data_file, clean_labels_file):
 
 if __name__ == "__main__":
     datasets = [
-        ("Original", "mnist_data.npy", "mnist_labels.npy"),
+        ("Original", "mnist_data.npy", "mnist_labels.npy"),  # DL 모델
         ("LogisticRegression", "clean_data_LogisticRegression.npy", "clean_labels_LogisticRegression.npy"),
         ("SVM", "clean_data_SVM.npy", "clean_labels_SVM.npy"),
         ("NaiveBayes", "clean_data_NaiveBayes.npy", "clean_labels_NaiveBayes.npy"),
