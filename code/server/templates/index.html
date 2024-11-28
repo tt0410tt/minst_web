@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flask Drawing App</title>
+    <title>Model Recognition</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
@@ -16,16 +16,18 @@
         <!-- Model Selector -->
         <div class="model-selector">
             <select id="model-select">
-                <option value="Logistic">Logistic</option>
-                <option value="Naive">Naive</option>
-                <option value="Random">Random</option>
+                <option value="LogisticRegression">LogisticRegression</option>
+                <option value="NaiveBayes">NaiveBayes</option>
+                <option value="Original">Original</option>
+                <option value="RandomForest">RandomForest</option>
                 <option value="SVM">SVM</option>
-                <option value="Mymodel">Mymodel</option>
             </select>
         </div>
 
         <!-- Right Panel -->
-        <div id="right-panel" class="rectangle"></div>
+        <div id="result-panel" class="rectangle">
+            <p id="result-text">Result will appear here</p>
+        </div>
     </div>
 
     <!-- Buttons -->
@@ -37,4 +39,3 @@
     <script src="/static/script.js"></script>
 </body>
 </html>
-``

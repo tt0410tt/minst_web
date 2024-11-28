@@ -61,6 +61,43 @@ class Model:
         self.W1 -= self.learning_rate * dW1
         self.b1 -= self.learning_rate * db1
 
+    def load_weights(self, model_name):
+        """
+        지정된 모델 이름을 사용하여 가중치와 편향을 로드합니다.
+        파일의 상위 디렉토리에서 'model/MyDL' 경로로 이동하여 파일을 찾습니다.
+        """
+        try:
+            print(model_name)
+            print("트레이닝까지 왔어요")
+            # 현재 파일의 절대 경로
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+
+            # 상위 폴더로 이동 후 model/MyDL 경로 설정
+            base_dir = os.path.join(current_dir, "..","..", "model", "MyDL")
+            base_dir = os.path.abspath(base_dir)  # 절대 경로로 변환
+
+            # 디렉토리가 존재하는지 확인
+            if not os.path.exists(base_dir):
+                raise FileNotFoundError(f"Directory does not exist: {base_dir}")
+
+            # 디버깅용 출력
+            print(f"Resolved weights directory: {base_dir}")
+            print(f"Model name: {model_name}")
+
+            # 동적으로 파일 이름 생성 및 로드
+            self.W1 = np.load(os.path.join(base_dir, f"W1_{model_name}.npy"))
+            self.W2 = np.load(os.path.join(base_dir, f"W2_{model_name}.npy"))
+            self.W3 = np.load(os.path.join(base_dir, f"W3_{model_name}.npy"))
+            self.b1 = np.load(os.path.join(base_dir, f"b1_{model_name}.npy"))
+            self.b2 = np.load(os.path.join(base_dir, f"b2_{model_name}.npy"))
+            self.b3 = np.load(os.path.join(base_dir, f"b3_{model_name}.npy"))
+
+            print(f"Weights loaded successfully for model: {model_name}")
+        except FileNotFoundError as fnf_error:
+            raise Exception(f"File or directory not found: {str(fnf_error)}")
+        except Exception as e:
+            raise Exception(f"Error loading weights for model '{model_name}': {str(e)}")
+            
 # 데이터 경로 설정
 script_dir = os.path.dirname(os.path.abspath(__file__))
 datasets_dir = os.path.abspath(os.path.join(script_dir, "..", "..", "datasets"))
