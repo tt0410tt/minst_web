@@ -38,13 +38,13 @@
 ├── model  
 │   ├── ML  
 │   └── MyDL  
-└── result  
-    ├── ML  
-    │   ├── errors_LogisticRegression  
-    │   ├── errors_NaiveBayes  
-    │   ├── errors_RandomForest  
-    │   └── errors_SVM  
-    └── MyDL  
+├── result  
+│   ├── ML  
+│   │   ├── errors_LogisticRegression  
+│   │   ├── errors_NaiveBayes  
+│   │   ├── errors_RandomForest  
+│   │   └── errors_SVM  
+│   └── MyDL  
 
 ## 결과
 minst 학습 모델 정확도: 99.5% 이상
